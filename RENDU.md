@@ -31,32 +31,51 @@
 ## Exercice 4 — Déclaratif
 
 7. Quelle différence entre `kubectl create` et `kubectl apply` ?
-   >
+   > `kubectl create` : Crée une ressource à partir d'un manifeste, si elle existe déjà dans le cluster, la commande échoue.
+   > `kubectl appluy` : crée la ressource si elle n'existe pas, ou alors la met à jour si elle existe.
+     
 8. À quoi sert le `selector` d'un Service ? Que se passe-t-il s'il ne correspond à aucun pod ?
-   >
+   > Il permet au Service de cibler dynamiquement les pods vers lesquels router le trafic en filtrant sur leurs labels. S'il n'y a aucune correspondance, le Service est bien créé, mais ses endpoints restent vides. Aucun trafic ne peut être acheminé et les requêtes vers l'adresse du Service échouent, car le cluster ne trouve aucun pod correspondant à l'étiquette.
 
 ## Exercice 5 — Scaling & mises à jour
 
 9. Sur quels nœuds se trouvent vos 3 réplicas ? Collez la sortie de `kubectl get pods -l app=site -o wide`.
-   ```
+@SilverWindd ➜ /workspaces/Atelier-kubernetes (main) $ kubectl get pods -l app=site -o wide
+NAME                    READY   STATUS    RESTARTS   AGE   IP          NODE               NOMINATED NODE   READINESS GATES
+site-645899988f-4lb9f   1/1     Running   0          15m   10.42.0.7   k3d-lab-agent-0    <none>           <none>
+site-645899988f-xpt2b   1/1     Running   0          15m   10.42.2.7   k3d-lab-server-0   <none>           <none>
+site-645899988f-zz9fc   1/1     Running   0          15m   10.42.1.8   k3d-lab-agent-1    <none>           <none>
 
-   ```
 10. Avec l'image `nginx:9.99`, quel statut avait le pod ? Quelle commande vous a donné la cause ?
-    >
+    > Il avait le statut ErrImagePull puis ImagePullBackOff
+
+    @SilverWindd ➜ /workspaces/Atelier-kubernetes (main) $ kubectl describe pod site-5f7f944589-knr9j
+[...]
+Events:
+  Type     Reason     Age                From               Message
+  ----     ------     ----               ----               -------
+  Normal   Scheduled  60s                default-scheduler  Successfully assigned default/site-5f7f944589-knr9j to k3d-lab-agent-0
+  Normal   Pulling    20s (x3 over 60s)  kubelet            spec.containers{nginx}: Pulling image "nginx:9.99"
+  Warning  Failed     20s (x3 over 59s)  kubelet            spec.containers{nginx}: Failed to pull image "nginx:9.99": rpc error: code = NotFound desc = failed to pull and unpack image "docker.io/library/nginx:9.99": failed to resolve reference "docker.io/library/nginx:9.99": docker.io/library/nginx:9.99: not found
+  Warning  Failed     20s (x3 over 59s)  kubelet            spec.containers{nginx}: Error: ErrImagePull
+  Normal   BackOff    4s (x3 over 59s)   kubelet            spec.containers{nginx}: Back-off pulling image "nginx:9.99"
+  Warning  Failed     4s (x3 over 59s)   kubelet            spec.containers{nginx}: Error: ImagePullBackOff
+  
 11. Pendant la panne, le site restait-il accessible ? Pourquoi ?
-    >
+    > Oui, le site restait 100 % accessible grâce au RollingUpdate du Deployment. Kubernetes ne supprime les anciens pods fonctionnels (nginx:1.28) qu'une fois que les nouveaux pods sont démarrés et prêts (Ready). Comme le nouveau pod nginx:9.99 a échoué au téléchargement de l'image, le déploiement s'est bloqué, conservant les anciens pods actifs pour continuer à servir le trafic via le Service.
 
 ## Exercice 6 — Portainer & Mario
 
 12. URL publique de votre Mario :
-    >
+    > https://miniature-halibut-7479945vpxxhpx5w-8585.app.github.dev/
 13. Retrouvez le Deployment `mario` en ligne de commande. Portainer et `kubectl` parlent-ils au même composant ? Lequel ?
-    >
+    > Oui, Portainer et kubectl communiquent exactement avec le même composant : l'API Server de Kubernetes. Portainer n'est pas un système de déploiement parallèle : il fonctionne comme une interface graphique.
 
 ## Bonus (facultatif)
 
 14. Bonus réalisés et remarques :
-    >
+    > A : Le site est directement accessible sur le port 8081 sans avoir à utiliser de port forwarding.
+    > B : 
 
 ---
 

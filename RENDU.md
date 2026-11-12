@@ -75,8 +75,43 @@ Events:
 
 14. Bonus réalisés et remarques :
     > A : Le site est directement accessible sur le port 8081 sans avoir à utiliser de port forwarding.
-    > B : 
+    > B : Si la probe renvoie un chemin invalide, Nginx va renvoyer une erreur 404 Not Found pour cette URL. La sonde considérera que le test a échoué. Par conséquent, Kubernetes marquera le pod comme non prêt (Ready: 0/1) et retirera immédiatement le pod des endpoints du Service : le site deviendra inaccessible.
+    > C : Une fois le uncordon effectué, le nœud est de nouveau prêt à accepter de nouveaux pods, mais les pods qui ont été déplacés ne reviennent pas automatiquement sur agent-0. Kubernetes maintient l'état équilibré actuel. Pour forcer leur redistribution, il faudrait redémarrer le déploiement (kubectl rollout restart deploy/site).
 
 ---
 
-**Score obtenu avec `./scripts/check.sh` :** ... / ...
+@SilverWindd ➜ /workspaces/Atelier-kubernetes/scripts (main) $ ./check.sh 
+
+Exercice 1 — Cluster
+  ✔ Le cluster k3d 'lab' existe
+  ✔ 3 nœuds sont Ready (1 server + 2 agents)
+  ✔ Le port 8081 est relié au load balancer
+
+Exercice 2 — Premier déploiement
+  ✔ Le Deployment 'web' est disponible
+  ✔ Le Service 'web' existe
+
+Exercice 4 — Déclaratif
+  ✔ Les TODO des manifestes k8s/site/ sont complétés
+  ✔ Le Deployment 'site' est disponible
+  ✔ 'site' utilise la ConfigMap 'site-html'
+  ✔ Le Service 'site' a des endpoints
+
+Exercice 5 — Scaling & mises à jour
+  ✔ 'site' a au moins 3 réplicas prêts
+  ✔ Les pods 'site' sont répartis sur ≥ 2 nœuds
+  ✔ L'image de 'site' est versionnée (nginx:x.y)
+  ✔ Au moins une mise à jour a été déployée
+
+Exercice 6 — Portainer & Mario
+  ✔ Portainer est disponible
+  ✔ Le Deployment 'mario' est disponible
+
+Bonus
+  ✔ A — L'Ingress 'site' répond sur le port 8081
+  ✔ B — 'site' a une readinessProbe
+  ✔ B — 'site' a des limites de ressources
+
+Score : 18 / 18  (l'exercice 3 n'est pas vérifiable automatiquement)
+
+**Score obtenu avec `./scripts/check.sh` :** 18 / 18
